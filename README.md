@@ -1,23 +1,46 @@
-# Python Hello
+# Coffee Shop Inventory Agent
 
-The most basic boilerplate to start a Python project at 4Geeks is to start your very first Python project from scratch.
+A FastAPI inventory API and a manually implemented LLM tool-calling loop for a small coffee-supply shop. Products persist in `products.csv`, and agent events are appended to `conversation_log.csv`.
 
-## What to do next?
-
-Open the `main.py` file and start writing your code.
-
-Execute your code by typing the following command on your terminal:
+## Setup
 
 ```bash
-$ python main.py
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-You can create and include as many python files (a.k.a. modules) as you want using the import statements.
+Create a root `.env` file containing your Groq key:
 
-## Requirements
+```dotenv
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=llama-3.3-70b-versatile
+INVENTORY_API_URL=http://127.0.0.1:8000
+```
 
-Make sure you have Python installed in your computer. We strongly recommend [installing Python through Pyenv ](https://4geeks.com/how-to/what-is-pyenv-and-how-to-install-pyenv) to avoid version conflicts in the future.
+The `.env` file is ignored by Git; never commit API keys.
 
-### Contributors
+## Run
 
-This template was built as part of the [4Geeks Python Resources](https://4geeks.com/technology/python) for learning at [4Geeks.com](https://4geeks.com) by [Alejandro Sanchez](https://twitter.com/alesanchezr) and [many other contributors](https://github.com/4GeeksAcademy/python-hello/graphs/contributors).
+Start the API first:
+
+```bash
+uvicorn api.app:app --reload
+```
+
+In another terminal, start the agent:
+
+```bash
+python agent.py
+```
+
+Enter requests in natural language and type `salir` to end the session. The agent keeps its conversation history in memory until it exits. Both CSV files are persistent data and are not overwritten on agent restarts. The API can also be explored at `http://127.0.0.1:8000/docs`.
+
+## API
+
+- `GET /inventory`
+- `POST /inventory` with `{"name": "Oat milk", "quantity": 30, "unit": "liters"}`
+- `PATCH /inventory/{product_id}` with `{"delta": 12}` or `{"delta": -12}`
+- `GET /inventory/alerts?threshold=10`
+
+The alerts endpoint returns products whose quantity is strictly below the threshold (10 by default). Stock cannot be adjusted below zero.
